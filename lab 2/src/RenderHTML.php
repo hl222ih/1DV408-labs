@@ -6,13 +6,14 @@ class HTMLRenderer
 	{
 		if ($body === NULL) 
 		{
-			throw new \Exception("RenderHTML does not allow a NULL body.");
+			$body = "NULL";
 		}
 
 		echo 	"
 				<!DOCTYPE html>
-				<html>
+				<html lang=\"sv\">
 				<head>
+					<title>Lab2</title>
 					<meta charset=\"utf-8\">
 					$head
 				</head>
@@ -22,3 +23,9 @@ class HTMLRenderer
 				</html>";
 	}
 }
+//TODO LIST:
+//UC 3.5 -> 3-6 är inte korrekt implementerade helller.
+
+//Spara en textfil med användarnamnet ist? 
+
+//Flytta ut alla feedback meddelanden till en funktion i Loginview?

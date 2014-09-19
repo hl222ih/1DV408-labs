@@ -7,8 +7,6 @@ class LoginController
 {
 	private $view;
 	private $model;
-	private $tempPW = 1234;
-	private $tempUSER = "admin";
 
 	public function __construct()
 	{
@@ -18,58 +16,48 @@ class LoginController
 
 	public function HandleAccounts()
 	{
-		//Checks if "doLogout" is sent in the post, if it is, logout the user.
-		if (!empty($_POST['doLogout']) && $this->model->IsLoggedIn())
+		if ($this->model->IsLoggedIn($this->view->GetUserAgent(), $this->view->GetUserIP())) 
 		{
-			$this->model->LogOut();
-			$this->model->SetFeedbackMessage("You've been logged out successfully!");
-
-			return $this->view->GenerateHTML();
-		}
-
-		//Else the user is logging in, so we check if he has a username and password in the fields.
-		if (!$this->model->IsLoggedIn() && !empty($_POST['doLogin']))
-		{
-			if (empty($_POST['username'])) 
+			//Checks if "doLogout" is sent in the post, if it is and the user is actually logged in, log the user out...
+			if ($this->view->DidUserRequestLogout())
 			{
-				//Show the user that he has to unput a username.
-				$this->model->SetFeedbackMessage("Please enter a username!");
+				$feedback = $this->model->LogOut();
+				$this->view->UnsetUserCookies();
+				$this->view->SetFeedbackMessage($feedback);
+			}
+		}
+		else
+		{
+			//...then we check if the user requested to login....
+			if ($this->view->DidUserRequestLogin())
+			{
+				$feedback = $this->model->Login($this->view->GetUsernameInput(), $this->view->GetPasswordInput());
 
-				return $this->view->GenerateHTML();
+				$this->model->SaveUserSpecificInformation($this->view->GetUserAgent(), $this->view->GetUserIP());
+				
+				if ($this->view->RememberMe()) 
+				{
+					//Create a one time use password for the cookie.
+					$user = $this->view->GetUsernameInput();
+					$pw = $this->model->CreateOneTimePassword($user);
+
+					//Spara i cookie.
+					$feedback = $this->view->SaveUserCookie($user, $pw);
+				}
+				$this->view->SetFeedbackmessage($feedback);
 			}
 
-			if (empty($_POST['password'])) 
+			//...if he didn't press the login button but he has saved cridentials, log him in using cookies.
+			if ($this->view->AreCookiesSet() && !$this->view->DidUserRequestLogin()) 
 			{
-				//Show the user that he has to input a password.
-				$this->model->SetFeedbackMessage("Please enter a password!");
+				$feedback = $this->model->Login($this->view->GetUsernameCookie(), $this->view->GetPasswordCookie(), true);
 
-				return $this->view->GenerateHTML();
-			}
-			//Remove whitespace.
-			$login = trim($_POST['username']);
-			$pass = trim($_POST['password']);
+				$this->model->SaveUserSpecificInformation($this->view->GetUserAgent(), $this->view->GetUserIP());
 
-			//We login the user
-			if($this->CheckUserLogin($login, $pass))
-			{
-				$this->model->Login($login);
-				$this->model->SetFeedbackMessage("Login successfull!");
+				$this->view->SetFeedbackmessage($feedback);
 			}
-			else //We give the user a error message incase the account doesn't exist.
-				$this->model->SetFeedbackMessage("Incorrect username and/or password!");
 		}
 
-		return $this->view->GenerateHTML();
-	}
-
-	//Checks if the username and password exists and are correct.
-	public function CheckUserLogin($user, $pw)
-	{
-		if ($user == $this->tempUSER && $pw == $this->tempPW) 
-		{
-			return true;
-		}
-
-		return false;
+		return $this->view->GenerateHTML($this->model->IsLoggedIn($this->view->GetUserAgent(), $this->view->GetUserIP()));
 	}
 }
