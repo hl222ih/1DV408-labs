@@ -69,7 +69,8 @@ class LoginView
 		if (!$loginStatus)
 		{
 			$nameInput = $this->GetUsernameInput();
-			$HTMLString = 	"<form name='f1' method='post' action='?login'>
+			$HTMLString = 	"<h1>Laborationskod hk222gn</h1>
+							<form name='f1' method='post' action='?login'>
 							<h3>Användarnamn</h3>
 							<input type='text' name='username' value='$nameInput'>
 							<h3>Lösenord</h3>
