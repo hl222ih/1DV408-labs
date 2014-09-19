@@ -5,8 +5,8 @@ class LoginModel
 	private static $usernameSession = "loggedIn";
 	private static $userAgentSession = "userAgent";
 	private static $userIPSession = "userIP";
-	private $Password = "Password";
-	private $Username = "admin";
+	private $password = "Password";
+	private $username = "admin";
 
 	public function SaveUserSpecificInformation($userAgent, $userIP)
 	{
@@ -107,12 +107,12 @@ class LoginModel
 				return false;
 
 			//Compare the password in the temp password text file.
-			if ($user == $this->Username && $pw == $this->GetOneTimePassword($user)) 
+			if ($user == $this->username && $pw == $this->GetOneTimePassword($user)) 
 				return true;
 		}
 		else
 		{
-			if ($user == $this->Username && $pw == $this->Password) 
+			if ($user == $this->username && $pw == $this->password) 
 				return true;
 		}
 

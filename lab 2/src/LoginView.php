@@ -99,9 +99,8 @@ class LoginView
 		}
 
 		$day = utf8_encode(strftime("%A"));
-		$month = utf8_encode(strftime("%B"));
 
-		$HTMLString .= "<br/><br/>" . strftime("$day, den %d $month år %Y. Klockan är [%X]."); //gmdate("[H:i:s].", time() + 2 * 60 * 60)
+		$HTMLString .= "<br/><br/>" . strftime("$day, den %d %B år %Y. Klockan är [%X]."); //gmdate("[H:i:s].", time() + 2 * 60 * 60)
 		return $HTMLString;
 	}
 
