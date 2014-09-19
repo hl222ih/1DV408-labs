@@ -41,7 +41,7 @@ class LoginController
 					$user = $this->view->GetUsernameInput();
 					$pw = $this->model->CreateOneTimePassword($user);
 
-					//Spara i cookie.
+					//Save in cookie
 					$feedback = $this->view->SaveUserCookie($user, $pw);
 				}
 				$this->view->SetFeedbackmessage($feedback);

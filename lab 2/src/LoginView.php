@@ -63,7 +63,6 @@ class LoginView
 		return false;
 	}
 
-	//Date and time needs to be displayed here aswell
 	public function GenerateHTML($loginStatus)
 	{
 		//Login form.
@@ -98,7 +97,10 @@ class LoginView
 			$HTMLString .= $feedbackMsg;
 		}
 
-		$HTMLString .= "<br/><br/>" . strftime("%A, den %d %B år %Y. Klockan är [%X]."); //gmdate("[H:i:s].", time() + 2 * 60 * 60)
+		$day = utf8_encode(strftime("%A"));
+		$month = utf8_encode(strftime("%B"));
+
+		$HTMLString .= "<br/><br/>" . strftime("$day, den %d $month år %Y. Klockan är [%X]."); //gmdate("[H:i:s].", time() + 2 * 60 * 60)
 		return $HTMLString;
 	}
 

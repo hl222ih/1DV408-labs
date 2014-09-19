@@ -23,9 +23,3 @@ class HTMLRenderer
 				</html>";
 	}
 }
-//TODO LIST:
-//UC 3.5 -> 3-6 är inte korrekt implementerade helller.
-
-//Spara en textfil med användarnamnet ist? 
-
-//Flytta ut alla feedback meddelanden till en funktion i Loginview?
