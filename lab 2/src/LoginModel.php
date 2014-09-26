@@ -46,10 +46,8 @@ class LoginModel
 		if (isset($_SESSION[self::$usernameSession])) 
 		{
 			unset($_SESSION[self::$usernameSession]);
-
-			return "Du har nu loggats ut";
 		}
-		return "Utloggningen har misslyckats.";
+        return "Du har nu loggat ut";
 	}
 
 	public function GetUsername()
@@ -58,20 +56,20 @@ class LoginModel
 		{
 			return $_SESSION[self::$usernameSession];
 		}
-		return false;
+		return "";
 	}
 
 	public function Login($user, $pw, $cookie = false)
 	{
 		if ($user === "") 
 		{
-			return "Användarnamnet saknas!";
+			return "Användarnamn saknas";
 		}
 
 		if ($pw === "") 
 		{
 
-			return "Lösenordet saknas!";
+			return "Lösenord saknas";
 		}
 		//Remove whitespace and convert to lower case, all usernames are lowercase.
 		trim($user);
@@ -84,9 +82,9 @@ class LoginModel
 			$_SESSION[self::$usernameSession] = $user;
 
 			if($cookie)
-				return "Inloggningen lyckades med cookies!";
+				return "Inloggning lyckades via cookies";
 
-			return "Inloggningen lyckades!";
+			return "Inloggning lyckades";
 		}
 		else //We give the user a error message if the authentication failed.
 		{
