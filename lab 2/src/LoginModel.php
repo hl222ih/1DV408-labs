@@ -6,7 +6,7 @@ class LoginModel
 	private static $userAgentSession = "userAgent";
 	private static $userIPSession = "userIP";
 	private $password = "Password";
-	private $username = "admin";
+	private $username = "Admin";
 
 	public function SaveUserSpecificInformation($userAgent, $userIP)
 	{
@@ -71,9 +71,8 @@ class LoginModel
 
 			return "Lösenord saknas";
 		}
-		//Remove whitespace and convert to lower case, all usernames are lowercase.
+		//Remove whitespace
 		trim($user);
-		$user = strtolower($user);
 
 		//Check the provided login information
 		if($this->CheckUserLogin($user, $pw, $cookie))
