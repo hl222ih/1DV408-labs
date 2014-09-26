@@ -70,6 +70,7 @@ class LoginView
 		{
 			$nameInput = $this->GetUsernameInput();
 			$HTMLString = 	"<h1>Laborationskod hk222gn</h1>
+                            <h2>Ej inloggad</h2>
 							<form name='f1' method='post' action='?login'>
 							<h3>Användarnamn</h3>
 							<input type='text' name='username' value='$nameInput'>
