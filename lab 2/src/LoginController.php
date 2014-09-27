@@ -33,6 +33,7 @@ class LoginController
 			{
 				$feedback = $this->model->Login($this->view->GetUsernameInput(), $this->view->GetPasswordInput());
                 $this->model->SaveUserSpecificInformation($this->view->GetUserAgent(), $this->view->GetUserIP());
+
                 if ($this->model->IsLoggedIn($this->view->GetUserAgent(), $this->view->GetUserIP())) {
 
                     if ($this->view->RememberMe())
@@ -59,6 +60,13 @@ class LoginController
 			}
 		}
 
-		$this->view->GenerateHTML($this->model->IsLoggedIn($this->view->GetUserAgent(), $this->view->GetUserIP()));
+        if (!$this->model->IsLoggedIn($this->view->GetUserAgent(), $this->view->GetUserIP())) {
+            if ($this->view->AreCookiesSet())
+            {
+                $this->view->UnsetUserCookies();
+            }
+        }
+
+        $this->view->GenerateHTML($this->model->IsLoggedIn($this->view->GetUserAgent(), $this->view->GetUserIP()));
 	}
 }
