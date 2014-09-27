@@ -61,7 +61,10 @@ class LoginModel
 
 	public function Login($user, $pw, $cookie = false)
 	{
-		if ($user === "") 
+        //Remove whitespace
+        $user = trim($user);
+
+		if ($user === "")
 		{
 			return "Användarnamn saknas";
 		}
@@ -71,8 +74,6 @@ class LoginModel
 
 			return "Lösenord saknas";
 		}
-		//Remove whitespace
-		trim($user);
 
 		//Check the provided login information
 		if($this->CheckUserLogin($user, $pw, $cookie))
