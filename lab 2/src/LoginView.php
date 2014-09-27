@@ -5,6 +5,14 @@ class LoginView
 	private $model;
 	private $feedbackMessage = "";
 
+    private $postUsernameKey = "View::Username";
+    private $postPasswordKey = "View::Password";
+    private $postRepeatPasswordKey = "View::RepeatPassword";
+    private $postLoginButtonKey = "View::LoginButton";
+    private $postLogoutButtonKey = "View::LogoutButton";
+    private $postRegisterButtonKey = "View::RegisterButton";
+    private $postRememberMeCheckboxKey = "View::RememberCheckbox";
+
 	public function __construct(LoginModel $model)
 	{
 		$this->model = $model;
@@ -22,25 +30,25 @@ class LoginView
 
 	public function GetUsernameInput()
 	{
-		if (isset($_POST['username'])) 
+		if (isset($_POST[$this->postUsernameKey]))
 		{ 
-			return $_POST['username'];
+			return $_POST[$this-postUsernameKey];
 		}
 		return false;
 	}
 
 	public function GetPasswordInput()
 	{
-		if (isset($_POST['password'])) 
+		if (isset($_POST[$this->postPasswordKey]))
 		{ 
-			return $_POST['password'];
+			return $_POST[$this->postPasswordKey];
 		}
 		return false;
 	}
 
 	public function DidUserRequestLogout()
 	{
-		if (isset($_POST['doLogout']))
+		if (isset($_POST[$this->postLogoutButtonKey]))
 		{
 			return true;
 		}
@@ -49,37 +57,67 @@ class LoginView
 
 	public function DidUserRequestLogin()
 	{
-		if (isset($_POST['doLogin'])) 
+		if (isset($_POST[$this->postLoginButtonKey]))
 		{
 			return true;
 		}
 		return false;
 	}
 
+    public function DidUserWantToRegister()
+    {
+        if (isset($_POST[$this->$postRegisterButtonKey]))
+        {
+            return true;
+        }
+        return false;
+    }
+
 	public function RememberMe()
 	{
-		if (isset($_POST['rememberMe']))
+		if (isset($_POST[$this->postRememberMeCheckboxKey]))
 			return true;
 		return false;
 	}
 
-	public function GenerateHTML($loginStatus)
+	public function GenerateHTML($isLoggedIn)
 	{
-		//Login form.
-		if (!$loginStatus)
+		if (!$isLoggedIn)
 		{
-			$nameInput = $this->GetUsernameInput();
-			$HTMLString = 	"<h1>Laborationskod hk222gn</h1>
-                            <h2>Ej inloggad</h2>
-							<form name='f1' method='post' action='?login'>
-							<h3>Användarnamn</h3>
-							<input type='text' name='username' value='$nameInput'>
-							<h3>Lösenord</h3>
-							<input type='password' name='password'>
-							<input type='submit' value='Logga in' name='doLogin'>
-							<h3>Kom ihåg mig!</h3>
-							<input type ='checkbox' name='rememberMe' value='1'>
-							</form>";
+            if (isset($_GET['register'])) {
+                //Register form.
+                $HTMLString =   '
+            <h2>Ej inloggad, Registrerar användare</h2>
+            <form action="' . $_SERVER['PHP_SELF'] . '" method="post">
+                <fieldset>
+                    <legend>Registrera ny användare - Skriv in användarnamn och lösenord</legend>'
+                . ' <label for="usernameId">Namn:</label>
+                    <input type="text" name="' . $this->postUsernameKey . '" id="usernameId" value="' . $this->GetUsernameInput() . '" autofocus />
+                    <br /><label for="passwordId">Lösenord:</label>
+                    <input type="password" name="' . $this->postPasswordKey . '" id="passwordId" />
+                    <br /><label for="repeatPasswordId">Repetera lösenord:</label>
+                    <input type="password" name="' . $this->postRepeatPasswordKey . '" id="repeatPasswordId" />
+                    <br /><label for="registerId">Skicka:</label>
+                    <input type="submit" id="registerId" name="' . $this->postRegisterButtonKey . '" value="Registrera" />
+                </fieldset>
+            </form>
+            ';
+            } else {
+                //Login form.
+                $HTMLString = 	"
+                <h1>Laborationskod hk222gn</h1>
+                <p><a href='?register'>Registrera ny användare</a></p>
+                <h2>Ej inloggad</h2>
+                <form name='f1' method='post' action='?login'>
+                <h3>Användarnamn</h3>
+                <input type='text' name='" . $this->postUsernameKey . "' value='" . $this->GetUsernameInput() . "'>
+                <h3>Lösenord</h3>
+                <input type='password' name='" . $this->postPasswordKey . "'>
+                <input type='submit' value='Logga in' name='" . $this->postLoginButtonKey . "'>
+                <h3>Kom ihåg mig!</h3>
+                <input type ='checkbox' name='" . $this->postRememberMeCheckboxKey . "' value='1'>
+                </form>";
+            }
 		}
 		else
 		{
