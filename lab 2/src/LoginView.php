@@ -102,7 +102,7 @@ class LoginView
 		$day = utf8_encode(strftime("%A"));
 
 		$HTMLString .= "<br/><br/>" . strftime("$day, den %d %B år %Y. Klockan är [%X]."); //gmdate("[H:i:s].", time() + 2 * 60 * 60)
-		return $HTMLString;
+		$this->RenderHTML($HTMLString);
 	}
 
 	public function SetFeedbackMessage($msg)
@@ -164,6 +164,27 @@ class LoginView
     		return $_COOKIE['password'];
     	}
     	return "";
+    }
+
+    public function RenderHTML($body = "", $head = "")
+    {
+        if ($body === NULL)
+        {
+            $body = "NULL";
+        }
+
+        echo 	"
+				<!DOCTYPE html>
+				<html lang=\"sv\">
+				<head>
+					<title>Lab2</title>
+					<meta charset=\"utf-8\">
+					$head
+				</head>
+				<body>
+					$body
+				</body>
+				</html>";
     }
 
 }

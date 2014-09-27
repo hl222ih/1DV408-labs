@@ -130,10 +130,8 @@ class LoginModel
 			$oneTimePassword .= $signs[$rand];
 		}
 
-		//Save the cookie with the username in a file.
-		//$fopen = fopen($user . ".txt", 'w');
-		//fwrite($fopen, $oneTimePassword);
-
+        //Man får hoppas att en användare inte försöker logga in med ett användarnamn
+        //som redan används av en annan användare.
 		file_put_contents($user, $oneTimePassword);
 
 		return $oneTimePassword;
