@@ -32,19 +32,20 @@ class LoginController
 			if ($this->view->DidUserRequestLogin())
 			{
 				$feedback = $this->model->Login($this->view->GetUsernameInput(), $this->view->GetPasswordInput());
+                $this->model->SaveUserSpecificInformation($this->view->GetUserAgent(), $this->view->GetUserIP());
+                if ($this->model->IsLoggedIn($this->view->GetUserAgent(), $this->view->GetUserIP())) {
 
-				$this->model->SaveUserSpecificInformation($this->view->GetUserAgent(), $this->view->GetUserIP());
-				
-				if ($this->view->RememberMe()) 
-				{
-					//Create a one time use password for the cookie.
-					$user = $this->view->GetUsernameInput();
-					$pw = $this->model->CreateOneTimePassword($user);
+                    if ($this->view->RememberMe())
+                    {
+                        //Create a one time use password for the cookie.
+                        $user = $this->view->GetUsernameInput();
+                        $pw = $this->model->CreateOneTimePassword($user);
 
-					//Save in cookie
-					$feedback = $this->view->SaveUserCookie($user, $pw);
-				}
-				$this->view->SetFeedbackmessage($feedback);
+                        //Save in cookie
+                        $feedback = $this->view->SaveUserCookie($user, $pw);
+                    }
+                }
+                $this->view->SetFeedbackmessage($feedback);
 			}
 
 			//...if he didn't press the login button but he has saved cridentials, log him in using cookies.
@@ -58,6 +59,6 @@ class LoginController
 			}
 		}
 
-		return $this->view->GenerateHTML($this->model->IsLoggedIn($this->view->GetUserAgent(), $this->view->GetUserIP()));
+		$this->view->GenerateHTML($this->model->IsLoggedIn($this->view->GetUserAgent(), $this->view->GetUserIP()));
 	}
 }

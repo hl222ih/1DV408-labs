@@ -36,9 +36,9 @@ class LoginModel
 	{
 		if (isset($_SESSION[self::$usernameSession]) && $this->GetSavedUserAgent() === $userAgent && $this->GetSavedUserIP() === $userIP)
 		{
-			return true;
+        	return true;
 		}
-		return false;
+        return false;
 	}
 
 	public function Logout()
@@ -110,7 +110,7 @@ class LoginModel
 		}
 		else
 		{
-			if ($user == $this->username && $pw == $this->password) 
+			if ($user == $this->username && $pw == $this->password)
 				return true;
 		}
 
