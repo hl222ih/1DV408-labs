@@ -7,48 +7,62 @@ require_once("src/dal/LoginDal.php");
 use \Dal\LoginDal as Dal;
 
 class LoginModel {
-	private static $sessionUsername = "Model::LoggedIn";
-	private static $sessionUserAgent = "Model::UserAgent";
-	private static $sessionUserIP = "Model::UserIP";
+	private static $sessionUsernameKey = "Model::LoggedIn";
+	private static $sessionUserAgentKey = "Model::UserAgent";
+	private static $sessionUserIPKey = "Model::UserIP";
+    private static $sessionFeedbackMessageKey = "Model::FeedbackMessage";
     private $dal;
-    private $feedbackMessage;
 
     public function __construct() {
         $this->dal = new Dal("users.txt");
     }
 
-    public function getFeedback() {
-        return ($this->feedbackMessage ? $this->feedbackMessage : "");
+    public function getAndUnsetFeedbackMessage() {
+        $feedbackMessage = "";
+        if (isset($_SESSION[self::$sessionFeedbackMessageKey])) {
+            $feedbackMessage = $_SESSION[self::$sessionFeedbackMessageKey];
+            unset($_SESSION[self::$sessionFeedbackMessageKey]);
+        }
+        return $feedbackMessage;
+    }
+    private function setFeedbackMessage($message) {
+        $_SESSION[self::$sessionFeedbackMessageKey] = $message;
+    }
+    private function appendToFeedbackMessage($message) {
+        if (isset($_SESSION[self::$sessionFeedbackMessageKey]))
+            $_SESSION[self::$sessionFeedbackMessageKey] .= $message;
+        else
+            $this->setFeedbackMessage($message);
     }
 	private function storeSessionInfo($username) {
-        $_SESSION[self::$sessionUsername] = $username;
-        $_SESSION[self::$sessionUserAgent] = $_SERVER['HTTP_USER_AGENT'];
-		$_SESSION[self::$sessionUserIP] = $_SERVER['REMOTE_ADDR'];
+        $_SESSION[self::$sessionUsernameKey] = $username;
+        $_SESSION[self::$sessionUserAgentKey] = $_SERVER['HTTP_USER_AGENT'];
+		$_SESSION[self::$sessionUserIPKey] = $_SERVER['REMOTE_ADDR'];
 	}
 
 	private function getSessionUserAgent() {
-		return (isset($_SESSION[self::$sessionUserAgent]) ? $_SESSION[self::$sessionUserAgent] : false);
+		return (isset($_SESSION[self::$sessionUserAgentKey]) ? $_SESSION[self::$sessionUserAgentKey] : false);
 	}
 
 	private function getSessionUserIP() {
-		return (isset($_SESSION[self::$sessionUserIP]) ? $_SESSION[self::$sessionUserIP] : false);
+		return (isset($_SESSION[self::$sessionUserIPKey]) ? $_SESSION[self::$sessionUserIPKey] : false);
 	}
 
     public function getSessionUsername() {
-        return (isset($_SESSION[self::$sessionUsername]) ? $_SESSION[self::$sessionUsername] : false);
+        return (isset($_SESSION[self::$sessionUsernameKey]) ? $_SESSION[self::$sessionUsernameKey] : false);
     }
 	public function isLoggedIn() {
-		return (isset($_SESSION[self::$sessionUsername]) &&
+		return (isset($_SESSION[self::$sessionUsernameKey]) &&
             $this->getSessionUserAgent() === $_SERVER['HTTP_USER_AGENT'] &&
             $this->getSessionUserIP() === $_SERVER['REMOTE_ADDR']);
 	}
 
 	public function logout() {
-		if (isset($_SESSION[self::$sessionUsername]))
+		if (isset($_SESSION[self::$sessionUsernameKey]))
 		{
-			unset($_SESSION[self::$sessionUsername]);
+			unset($_SESSION[self::$sessionUsernameKey]);
 		}
-        $this->feedbackMessage = "Du har nu loggat ut";
+        $this->setFeedbackMessage("Du har nu loggat ut");
 	}
 
 	public function login($username, $password, $fromCookie, $rememberMe = false)
@@ -57,18 +71,18 @@ class LoginModel {
         $username = trim($username);
 
 		if (!$username) {
-            $this->feedbackMessage = "Användarnamn saknas";
+            $this->setFeedbackMessage("Användarnamn saknas");
         } else if (!$password) {
-            $this->feedbackMessage = "Lösenord saknas";
+            $this->setFeedbackMessage("Lösenord saknas");
         } else if ($this->validateUser($username, $password, $fromCookie))
 		{
 			//Store session info = user is logged in
             $this->storeSessionInfo($username);
 
-            $this->feedbackMessage = "Inloggning lyckades";
+            $this->setFeedbackMessage("Inloggning lyckades");
 
 			if ($fromCookie) {
-				$this->feedbackMessage .= " via cookies";
+                $this->appendToFeedbackMessage(" via cookies");
             } else if ($rememberMe) {
 
                 $cookiePassword = $this->encryptCookiePassword($password);
@@ -77,13 +91,13 @@ class LoginModel {
 
                 $this->storeCookieInfo($cookieExpirationTime, $cookiePassword);
 
-                $this->feedbackMessage .= " och vi kommer ihåg dig nästa gång";
+                $this->appendToFeedbackMessage(" och vi kommer ihåg dig nästa gång");
             }
 		} else {
 			if ($fromCookie)
-                $this->feedbackMessage = "Felaktig information i cookie";
+                $this->setFeedbackMessage("Felaktig information i cookie");
 			else
-                $this->feedbackMessage = "Fel användarnamn och/eller lösenord!";
+                $this->setFeedbackMessage("Fel användarnamn och/eller lösenord!");
 		}
 	}
 
@@ -98,16 +112,16 @@ class LoginModel {
     private function validateUser($username, $password, $fromCookie) {
         $isValidated = false;
 
-        if ($username == $this->getSessionUsername()) {
+        //if ($username == $this->getSessionUsername()) {
             if ($fromCookie) {
-                if ($this->dal->getCookieExpiration($username) < time()
-                    && $this->dal->getCookiePassword($username) == $password)
+                if ($this->dal->getUserCookieExpiration($username) > time()
+                    && $this->dal->getUserCookiePassword($username) == $password)
                     $isValidated = true;
             } else {
-                if ($this->dal->getPassword($username) == $this->encryptPassword($password))
+                if ($this->dal->getUserPassword($username) == $this->encryptPassword($password, $username)) //$username as salt
                     $isValidated = true;
             }
-        }
+      //  }
 
 		return $isValidated;
 	}
@@ -116,13 +130,12 @@ class LoginModel {
         $salt = $_SERVER['HTTP_USER_AGENT'].$_SERVER['REMOTE_ADDR'];
         return md5($salt.$password);
     }
-    private function encryptPassword($password) {
-        $salt = $this->getSessionUsername();
+    private function encryptPassword($password, $salt) {
         return md5($salt.$password);
     }
 
     public function getCookieExpirationTime() {
-        return $this->dal->getCookieExpiration($this->getSessionUsername());
+        return $this->dal->getUserCookieExpiration($this->getSessionUsername());
     }
 
     private function storeCookieInfo($cookieExpirationTime, $cookiePassword) {
@@ -130,6 +143,43 @@ class LoginModel {
     }
 
     public function getCookiePassword() {
-        return $this->dal->getCookiePassword($this->getSessionUsername());
+        return $this->dal->getUserCookiePassword($this->getSessionUsername());
+    }
+
+    public function registerNewUser($username, $password, $repeatedPassword) {
+        $password = trim($password);
+        $repeatedPassword = trim($repeatedPassword);
+
+        $isSuccess = false;
+
+        if (mb_strlen($username) < 3) {
+            $this->setFeedbackMessage("Användarnamnet har för få tecken. Minst 3 tecken");
+        }
+
+        if (mb_strlen($password) < 6) {
+            if (isset($_SESSION[self::$sessionFeedbackMessageKey]))
+                $this->appendToFeedbackMessage("<br />");
+            $this->appendToFeedbackMessage("Lösenordet har för få tecken. Minst 6 tecken");
+        }
+
+        if (!isset($_SESSION[self::$sessionFeedbackMessageKey]) && $password != $repeatedPassword) {
+            $this->setFeedbackMessage("Lösenorden matchar inte.");
+        }
+
+        if (!isset($_SESSION[self::$sessionFeedbackMessageKey])) {
+            try {
+                $this->dal->addUser($username, $this->encryptPassword($password, $username));
+                $this->setFeedbackMessage("Registrering av ny användare lyckades");
+                $isSuccess = true;
+            } catch (\Dal\IllegalUsernameException $e) {
+                $this->setFeedbackMessage("Användarnamnet innehåller otillåtna tecken");
+            } catch (\Dal\AlreadyExistException $e) {
+                $this->setFeedbackMessage("Användarnamnet är redan upptaget");
+            } catch (\Exception $e) {
+                $this->setFeedbackMessage("Ett oväntat fel inträffade");
+            }
+        }
+
+        return $isSuccess;
     }
 }

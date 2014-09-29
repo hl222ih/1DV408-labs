@@ -9,4 +9,4 @@ date_default_timezone_set("Europe/Stockholm");
 setlocale(LC_ALL, "sv_SE");
 
 $controller = new Controller();
-$controller->handleAccounts();
+$controller->start();

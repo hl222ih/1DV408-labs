@@ -39,6 +39,10 @@ class LoginView {
 		return (isset($_POST[$this->postPasswordKey]) ? $_POST[$this->postPasswordKey] : "");
 	}
 
+    public function getRepeatedPasswordInput() {
+        return (isset($_POST[$this->postRepeatPasswordKey]) ? $_POST[$this->postRepeatPasswordKey] : "");
+    }
+
 	public function didUserRequestLogout() {
 		return (isset($_POST[$this->postLogoutButtonKey]));
 	}
@@ -48,7 +52,7 @@ class LoginView {
 	}
 
     public function didUserRequestRegisterNewUser() {
-        return (isset($_POST[$this->$postRegisterButtonKey]));
+        return (isset($_POST[$this->postRegisterButtonKey]));
     }
 
 	public function getRememberMeInput() {
@@ -62,22 +66,22 @@ class LoginView {
             if (isset($_GET['register'])) {
                 //Register form.
                 $HtmlString .=   '
-            <h2>Ej inloggad, Registrerar användare</h2>
-            <form action="' . $_SERVER['PHP_SELF'] . '" method="post">
-                <fieldset>
-                    <legend>Registrera ny användare - Skriv in användarnamn och lösenord</legend>'
-                    . ($feedbackMessage ? $feedbackMessage : "")
-                    . ' <label for="usernameId">Namn:</label>
-                    <input type="text" name="' . $this->postUsernameKey . '" id="usernameId" value="' . $this->getUsernameInput() . '" autofocus />
-                    <br /><label for="passwordId">Lösenord:</label>
-                    <input type="password" name="' . $this->postPasswordKey . '" id="passwordId" />
-                    <br /><label for="repeatPasswordId">Repetera lösenord:</label>
-                    <input type="password" name="' . $this->postRepeatPasswordKey . '" id="repeatPasswordId" />
-                    <br /><label for="registerId">Skicka:</label>
-                    <input type="submit" id="registerId" name="' . $this->postRegisterButtonKey . '" value="Registrera" />
-                </fieldset>
-            </form>
-            ';
+                <h2>Ej inloggad, Registrerar användare</h2>
+                <form action="?register" method="post">
+                    <fieldset>
+                        <legend>Registrera ny användare - Skriv in användarnamn och lösenord</legend>'
+                        . ($feedbackMessage ? "<p>" . $feedbackMessage . "</p>" : "")
+                        . ' <label for="usernameId">Namn:</label>
+                        <input type="text" name="' . $this->postUsernameKey . '" id="usernameId" value="' . $this->getUsernameInput() . '" autofocus />
+                        <br /><label for="passwordId">Lösenord:</label>
+                        <input type="password" name="' . $this->postPasswordKey . '" id="passwordId" />
+                        <br /><label for="repeatPasswordId">Repetera lösenord:</label>
+                        <input type="password" name="' . $this->postRepeatPasswordKey . '" id="repeatPasswordId" />
+                        <br /><label for="registerId">Skicka:</label>
+                        <input type="submit" id="registerId" name="' . $this->postRegisterButtonKey . '" value="Registrera" />
+                    </fieldset>
+                </form>
+                ';
             } else {
                 //Login form.
                 $HtmlString .= 	"
@@ -97,8 +101,8 @@ class LoginView {
 			$username = $this->model->getSessionUsername();
 			$HtmlString .= 	"<h2>$username är inloggad</h2>
 							<form name='f2' method='post' action='?logout'>"
-							. ($feedbackMessage ? $feedbackMessage : '') .
-							"<input type='submit' value='Logga ut' name='doLogout'>
+							. ($feedbackMessage ? "<p>" . $feedbackMessage . "</p>" : '') .
+							"<input type='submit' value='Logga ut' name='" . $this->postLogoutButtonKey . "'>
 							</form>";
 		}
 
