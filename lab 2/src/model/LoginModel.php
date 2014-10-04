@@ -11,6 +11,8 @@ class LoginModel {
 	private static $sessionUserAgentKey = "Model::UserAgent";
 	private static $sessionUserIPKey = "Model::UserIP";
     private static $sessionFeedbackMessageKey = "Model::FeedbackMessage";
+    private static $sessionLastPostedUsername = "Model::LastPostedUsername";
+
     private $dal;
 
     public function __construct() {
@@ -25,15 +27,18 @@ class LoginModel {
         }
         return $feedbackMessage;
     }
+
     private function setFeedbackMessage($message) {
         $_SESSION[self::$sessionFeedbackMessageKey] = $message;
     }
+
     private function appendToFeedbackMessage($message) {
         if (isset($_SESSION[self::$sessionFeedbackMessageKey]))
             $_SESSION[self::$sessionFeedbackMessageKey] .= $message;
         else
             $this->setFeedbackMessage($message);
     }
+
 	private function storeSessionInfo($username) {
         $_SESSION[self::$sessionUsernameKey] = $username;
         $_SESSION[self::$sessionUserAgentKey] = $_SERVER['HTTP_USER_AGENT'];
@@ -51,24 +56,37 @@ class LoginModel {
     public function getSessionUsername() {
         return (isset($_SESSION[self::$sessionUsernameKey]) ? $_SESSION[self::$sessionUsernameKey] : false);
     }
+
 	public function isLoggedIn() {
 		return (isset($_SESSION[self::$sessionUsernameKey]) &&
             $this->getSessionUserAgent() === $_SERVER['HTTP_USER_AGENT'] &&
             $this->getSessionUserIP() === $_SERVER['REMOTE_ADDR']);
+        //would actually prefer a simple variable $isLoggedIn true/false (which is checked upon get/post
+        //but keeping the main logic from the code I was continuing with from lab2.
 	}
 
 	public function logout() {
 		if (isset($_SESSION[self::$sessionUsernameKey]))
-		{
 			unset($_SESSION[self::$sessionUsernameKey]);
-		}
+
         $this->setFeedbackMessage("Du har nu loggat ut");
-	}
+        unset($_SESSION[self::$sessionLastPostedUsername]);
+    }
+
+    public function getLastPostedUsername() {
+        return (isset($_SESSION[self::$sessionLastPostedUsername]) ? $_SESSION[self::$sessionLastPostedUsername] : "");
+    }
+
+    private function setLastPostedUsername($lastPostedUsername) {
+        $_SESSION[self::$sessionLastPostedUsername] = $lastPostedUsername;
+    }
 
 	public function login($username, $password, $fromCookie, $rememberMe = false)
 	{
         //Remove surrounding whitespace
         $username = trim($username);
+
+        $this->setLastPostedUsername($username);
 
 		if (!$username) {
             $this->setFeedbackMessage("Användarnamn saknas");
@@ -76,7 +94,7 @@ class LoginModel {
             $this->setFeedbackMessage("Lösenord saknas");
         } else if ($this->validateUser($username, $password, $fromCookie))
 		{
-			//Store session info = user is logged in
+			//Store session info = login user
             $this->storeSessionInfo($username);
 
             $this->setFeedbackMessage("Inloggning lyckades");
@@ -101,9 +119,8 @@ class LoginModel {
 		}
 	}
 
-	//Checks if the username and password exists and are correct.
     /**
-     *
+     * Checks if the username and password exists and are correct.
      * @param string $username (username from post or cookie)
      * @param string $password (password from post or hashed password from cookie)
      * @param bool $fromCookie (true if login details were passed from cookie, false if login form was used)
@@ -112,16 +129,12 @@ class LoginModel {
     private function validateUser($username, $password, $fromCookie) {
         $isValidated = false;
 
-        //if ($username == $this->getSessionUsername()) {
-            if ($fromCookie) {
-                if ($this->dal->getUserCookieExpiration($username) > time()
-                    && $this->dal->getUserCookiePassword($username) == $password)
-                    $isValidated = true;
-            } else {
-                if ($this->dal->getUserPassword($username) == $this->encryptPassword($password, $username)) //$username as salt
-                    $isValidated = true;
-            }
-      //  }
+        if ($fromCookie) {
+            if ($this->dal->getUserCookieExpiration($username) > time()
+                && $this->dal->getUserCookiePassword($username) == $password)
+                $isValidated = true;
+        } else if ($this->dal->getUserPassword($username) == $this->encryptPassword($password, $username)) //$username as salt
+            $isValidated = true;
 
 		return $isValidated;
 	}
@@ -147,8 +160,11 @@ class LoginModel {
     }
 
     public function registerNewUser($username, $password, $repeatedPassword) {
+        $username = trim($username);
         $password = trim($password);
         $repeatedPassword = trim($repeatedPassword);
+
+        $this->setLastPostedUsername($username);
 
         $isSuccess = false;
 
@@ -173,7 +189,8 @@ class LoginModel {
                 $isSuccess = true;
             } catch (\Dal\IllegalUsernameException $e) {
                 $this->setFeedbackMessage("Användarnamnet innehåller otillåtna tecken");
-            } catch (\Dal\AlreadyExistException $e) {
+                $this->setLastPostedUsername($this->dal->cleanUsername($username));
+            } catch (\Dal\AlreadyExistsException $e) {
                 $this->setFeedbackMessage("Användarnamnet är redan upptaget");
             } catch (\Exception $e) {
                 $this->setFeedbackMessage("Ett oväntat fel inträffade");

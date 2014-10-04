@@ -3,10 +3,11 @@
 namespace Dal;
 
 class IllegalUsernameException extends \Exception{}
-class AlreadyExistException extends \Exception{}
+class AlreadyExistsException extends \Exception{}
 
 class LoginDal {
     private $filePath;
+    const ALLOWED_USERNAME_CHARACTER = '[a-zA-Z0-9_\-ÅÄÖåäö]';
 
     public function __construct($filename) {
         $directory = "data";
@@ -35,14 +36,12 @@ class LoginDal {
     public function getUserPassword($username) {
         $userData = $this->getUserData();
 
-        if (isset($userData[$username])) {
-            return $userData[$username]['password'];
-        }
+        return (isset($userData[$username]) ? $userData[$username]['password'] : false);
     }
 
     public function addUser($username, $password) {
 
-        if (!preg_match('/^(?:[a-zA-Z0-9_\-ÅÄÖåäö])+$/', $username))
+        if (!preg_match('/^'. self::ALLOWED_USERNAME_CHARACTER .'+$/', $username))
             throw new IllegalUsernameException("Invalid username. Only a-z, A-Z, åäöÅÄÖ, 0-9, - and _ are allowed characters.");
 
         $userData = $this->getUserData();
@@ -51,7 +50,7 @@ class LoginDal {
             $userData[$username]['password'] = $password;
             $this->setUserData($userData);
         } else {
-            throw new AlreadyExistException("A user with that name already exist.");
+            throw new AlreadyExistsException("A user with that name already exist.");
         }
     }
 
@@ -72,18 +71,32 @@ class LoginDal {
     }
 
     public function getUserCookieExpiration($username) {
-        //TODO: hämta från fil
         $userData = $this->getUserData();
-        if (isset($userData[$username])) {
+        if (isset($userData[$username]) && isset($userData[$username]['cookieExpiration'])) {
             return $userData[$username]['cookieExpiration'];
+        } else {
+            return false;
         }
     }
 
     public function getUserCookiePassword($username) {
-        //TODO: hämta från fil
         $userData = $this->getUserData();
-        if (isset($userData[$username])) {
+        if (isset($userData[$username]) && isset($userData[$username]['cookiePassword'])) {
             return $userData[$username]['cookiePassword'];
+        } else {
+            return false;
         }
+    }
+
+    /**
+     * Cleans a username from invalid characters
+     * @param $username
+     * @return mixed the username cleaned from invalid characters
+     */
+    public function cleanUsername($username) {
+        $username = strip_tags($username);
+        $disallowedUserCharacter = preg_replace('/\[/', '[^', self::ALLOWED_USERNAME_CHARACTER);
+
+        return preg_replace('/' . $disallowedUserCharacter.'/', '', $username);
     }
 }

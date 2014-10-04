@@ -72,7 +72,7 @@ class LoginView {
                         <legend>Registrera ny användare - Skriv in användarnamn och lösenord</legend>'
                         . ($feedbackMessage ? "<p>" . $feedbackMessage . "</p>" : "")
                         . ' <label for="usernameId">Namn:</label>
-                        <input type="text" name="' . $this->postUsernameKey . '" id="usernameId" value="' . $this->getUsernameInput() . '" autofocus />
+                        <input type="text" name="' . $this->postUsernameKey . '" id="usernameId" value="' . $this->model->getLastPostedUsername() . '" autofocus />
                         <br /><label for="passwordId">Lösenord:</label>
                         <input type="password" name="' . $this->postPasswordKey . '" id="passwordId" />
                         <br /><label for="repeatPasswordId">Repetera lösenord:</label>
@@ -89,7 +89,7 @@ class LoginView {
                 <p><a href='?register'>Registrera ny användare</a></p>
                 <form name='f1' method='post' action='?login'>"
                 . ($feedbackMessage ? $feedbackMessage : '') . "<h3>Användarnamn</h3>
-                <input type='text' name='" . $this->postUsernameKey . "' value='" . $this->getUsernameInput() . "'>
+                <input type='text' name='" . $this->postUsernameKey . "' value='" . $this->model->getLastPostedUsername() . "'>
                 <h3>Lösenord</h3>
                 <input type='password' name='" . $this->postPasswordKey . "'>
                 <input type='submit' value='Logga in' name='" . $this->postLoginButtonKey . "'>

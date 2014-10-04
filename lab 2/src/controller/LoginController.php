@@ -43,7 +43,8 @@ class LoginController {
                     }
                 }
 			} else if ($this->view->didUserRequestRegisterNewUser()) {
-                if ($this->model->registerNewUser($this->view->getUsernameInput(),
+                if ($this->model->registerNewUser(
+                    $this->view->getUsernameInput(),
                     $this->view->getPasswordInput(),
                     $this->view->getRepeatedPasswordInput())) {
 
